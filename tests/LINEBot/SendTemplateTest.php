@@ -22,6 +22,8 @@ use LINE\LINEBot;
 use LINE\LINEBot\Constant\ActionType;
 use LINE\LINEBot\Constant\MessageType;
 use LINE\LINEBot\Constant\TemplateType;
+use LINE\LINEBot\Constant\TemplateImageSize;
+use LINE\LINEBot\Constant\TemplateImageAspectRatio;
 use LINE\LINEBot\MessageBuilder\TemplateBuilder\ButtonTemplateBuilder;
 use LINE\LINEBot\MessageBuilder\TemplateBuilder\ImageCarouselTemplateBuilder;
 use LINE\LINEBot\MessageBuilder\TemplateBuilder\ImageCarouselColumnTemplateBuilder;
@@ -262,4 +264,113 @@ class SendTemplateTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($res->isSucceeded());
         $this->assertEquals(200, $res->getJSONDecodedBody()['status']);
     }
+
+    public function testButtonTemplateWithOptions()
+    {
+        $mock = function ($testRunner, $httpMethod, $url, $data) {
+            /** @var \PHPUnit_Framework_TestCase $testRunner */
+            $testRunner->assertEquals('POST', $httpMethod);
+            $testRunner->assertEquals('https://api.line.me/v2/bot/message/push', $url);
+
+            $testRunner->assertEquals('DESTINATION', $data['to']);
+            $testRunner->assertEquals(1, count($data['messages']));
+
+            $message = $data['messages'][0];
+            $testRunner->assertEquals(MessageType::TEMPLATE, $message['type']);
+            $testRunner->assertEquals('alt test', $message['altText']);
+
+            $template = $message['template'];
+            $testRunner->assertEquals(TemplateType::BUTTONS, $template['type']);
+            $testRunner->assertEquals('button title', $template['title']);
+            $testRunner->assertEquals('button button', $template['text']);
+            $testRunner->assertEquals('https://example.com/thumbnail.jpg', $template['thumbnailImageUrl']);
+            $testRunner->assertEquals(TemplateImageAspectRatio::SQUARE, $template['imageAspectRatio']);
+            $testRunner->assertEquals(TemplateImageSize::CONTAIN, $template['imageSize']);
+            $testRunner->assertEquals('#000000', $template['imageBackgroundColor']);
+
+            $actions = $template['actions'];
+            $testRunner->assertEquals(1, count($actions));
+            $testRunner->assertEquals(ActionType::POSTBACK, $actions[0]['type']);
+            $testRunner->assertEquals('postback label', $actions[0]['label']);
+            $testRunner->assertEquals('post=back', $actions[0]['data']);
+
+            return ['status' => 200];
+        };
+        $bot = new LINEBot(new DummyHttpClient($this, $mock), ['channelSecret' => 'CHANNEL-SECRET']);
+        $res = $bot->pushMessage(
+            'DESTINATION',
+            new LINEBot\MessageBuilder\TemplateMessageBuilder(
+                'alt test',
+                new ButtonTemplateBuilder(
+                    'button title',
+                    'button button',
+                    'https://example.com/thumbnail.jpg',
+                    [
+                        new PostbackTemplateActionBuilder('postback label', 'post=back'),
+                    ],
+                    'square',
+                    'contain',
+                    '#000000'
+                )
+            )
+        );
+
+        $this->assertEquals(200, $res->getHTTPStatus());
+        $this->assertTrue($res->isSucceeded());
+        $this->assertEquals(200, $res->getJSONDecodedBody()['status']);
+    }
+
+    public function testImageCarouselTemplateWithOptions()
+    {
+        $mock = function ($testRunner, $httpMethod, $url, $data) {
+            /** @var \PHPUnit_Framework_TestCase $testRunner */
+            $testRunner->assertEquals('POST', $httpMethod);
+            $testRunner->assertEquals('https://api.line.me/v2/bot/message/push', $url);
+
+            $testRunner->assertEquals('DESTINATION', $data['to']);
+            $testRunner->assertEquals(1, count($data['messages']));
+
+            $message = $data['messages'][0];
+            $testRunner->assertEquals(MessageType::TEMPLATE, $message['type']);
+            $testRunner->assertEquals('alt test', $message['altText']);
+
+            $template = $message['template'];
+            $testRunner->assertEquals(TemplateType::IMAGE_CAROUSEL, $template['type']);
+            $testRunner->assertEquals(TemplateImageAspectRatio::RECTANGLE, $template['imageAspectRatio']);
+            $testRunner->assertEquals(TemplateImageSize::COVER, $template['imageSize']);
+
+            $columns = $template['columns'];
+            $testRunner->assertEquals(1, count($columns));
+            $testRunner->assertEquals('https://example.com/image1.png', $columns[0]['imageUrl']);
+            $testRunner->assertEquals('#000000', $columns[0]['imageBackgroundColor']);
+            $testRunner->assertEquals(ActionType::POSTBACK, $columns[0]['action']['type']);
+            $testRunner->assertEquals('postback label', $columns[0]['action']['label']);
+            $testRunner->assertEquals('post=back', $columns[0]['action']['data']);
+
+            return ['status' => 200];
+        };
+        $bot = new LINEBot(new DummyHttpClient($this, $mock), ['channelSecret' => 'CHANNEL-SECRET']);
+        $res = $bot->pushMessage(
+            'DESTINATION',
+            new LINEBot\MessageBuilder\TemplateMessageBuilder(
+                'alt test',
+                new ImageCarouselTemplateBuilder(
+                    [
+                        new ImageCarouselColumnTemplateBuilder(
+                            'https://example.com/image1.png',
+                            new PostbackTemplateActionBuilder('postback label', 'post=back'),
+                            '#000000'
+                        )
+                    ],
+                    'rectangle',
+                    'cover'
+                )
+            )
+        );
+
+        $this->assertEquals(200, $res->getHTTPStatus());
+        $this->assertTrue($res->isSucceeded());
+        $this->assertEquals(200, $res->getJSONDecodedBody()['status']);
+    }
+
 }

@@ -37,6 +37,12 @@ class ButtonTemplateBuilder implements TemplateBuilder
     private $thumbnailImageUrl;
     /** @var TemplateActionBuilder[] */
     private $actionBuilders;
+    /** @var string */
+    private $imageAspectRatio;
+    /** @var string */
+    private $imageSize;
+    /** @var string */
+    private $imageBackgroundColor;
 
     /** @var array */
     private $template;
@@ -49,12 +55,15 @@ class ButtonTemplateBuilder implements TemplateBuilder
      * @param string $thumbnailImageUrl
      * @param TemplateActionBuilder[] $actionBuilders
      */
-    public function __construct($title, $text, $thumbnailImageUrl, array $actionBuilders)
+    public function __construct($title, $text, $thumbnailImageUrl, array $actionBuilders, $imageAspectRatio = null, $imageSize = null, $imageBackgroundColor = null)
     {
         $this->title = $title;
         $this->text = $text;
         $this->thumbnailImageUrl = $thumbnailImageUrl;
         $this->actionBuilders = $actionBuilders;
+        $this->imageAspectRatio = $imageAspectRatio;
+        $this->imageSize = $imageSize;
+        $this->imageBackgroundColor = $imageBackgroundColor;
     }
 
     /**
@@ -80,6 +89,18 @@ class ButtonTemplateBuilder implements TemplateBuilder
             'text' => $this->text,
             'actions' => $actions,
         ];
+
+        if (!empty($this->imageAspectRatio)) {
+            $this->template['imageAspectRatio'] = $this->imageAspectRatio;
+        }
+
+        if (!empty($this->imageSize)) {
+            $this->template['imageSize'] = $this->imageSize;
+        }
+
+        if (!empty($this->imageBackgroundColor)) {
+            $this->template['imageBackgroundColor'] = $this->imageBackgroundColor;
+        }
 
         return $this->template;
     }
