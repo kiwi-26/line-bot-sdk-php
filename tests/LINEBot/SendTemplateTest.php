@@ -25,6 +25,8 @@ use LINE\LINEBot\Constant\TemplateType;
 use LINE\LINEBot\Constant\TemplateImageSize;
 use LINE\LINEBot\Constant\TemplateImageAspectRatio;
 use LINE\LINEBot\MessageBuilder\TemplateBuilder\ButtonTemplateBuilder;
+use LINE\LINEBot\MessageBuilder\TemplateBuilder\CarouselTemplateBuilder;
+use LINE\LINEBot\MessageBuilder\TemplateBuilder\CarouselColumnTemplateBuilder;
 use LINE\LINEBot\MessageBuilder\TemplateBuilder\ImageCarouselTemplateBuilder;
 use LINE\LINEBot\MessageBuilder\TemplateBuilder\ImageCarouselColumnTemplateBuilder;
 use LINE\LINEBot\TemplateActionBuilder\MessageTemplateActionBuilder;
@@ -294,6 +296,11 @@ class SendTemplateTest extends \PHPUnit_Framework_TestCase
             $testRunner->assertEquals('postback label', $actions[0]['label']);
             $testRunner->assertEquals('post=back', $actions[0]['data']);
 
+            $defaultAction = $template['defaultAction'];
+            $testRunner->assertEquals(ActionType::POSTBACK, $defaultAction['type']);
+            $testRunner->assertEquals('default label', $defaultAction['label']);
+            $testRunner->assertEquals('default=action', $defaultAction['data']);
+
             return ['status' => 200];
         };
         $bot = new LINEBot(new DummyHttpClient($this, $mock), ['channelSecret' => 'CHANNEL-SECRET']);
@@ -310,7 +317,8 @@ class SendTemplateTest extends \PHPUnit_Framework_TestCase
                     ],
                     'square',
                     'contain',
-                    '#000000'
+                    '#000000',
+                    new PostbackTemplateActionBuilder('default label', 'default=action')
                 )
             )
         );
@@ -364,6 +372,81 @@ class SendTemplateTest extends \PHPUnit_Framework_TestCase
                     ],
                     'rectangle',
                     'cover'
+                )
+            )
+        );
+
+        $this->assertEquals(200, $res->getHTTPStatus());
+        $this->assertTrue($res->isSucceeded());
+        $this->assertEquals(200, $res->getJSONDecodedBody()['status']);
+    }
+
+    public function testCarouselTemplateWithOptions()
+    {
+        $mock = function ($testRunner, $httpMethod, $url, $data) {
+            /** @var \PHPUnit_Framework_TestCase $testRunner */
+            $testRunner->assertEquals('POST', $httpMethod);
+            $testRunner->assertEquals('https://api.line.me/v2/bot/message/push', $url);
+
+            $testRunner->assertEquals('DESTINATION', $data['to']);
+            $testRunner->assertEquals(1, count($data['messages']));
+
+            $message = $data['messages'][0];
+            $testRunner->assertEquals(MessageType::TEMPLATE, $message['type']);
+            $testRunner->assertEquals('alt test', $message['altText']);
+
+            $template = $message['template'];
+            $testRunner->assertEquals(TemplateType::CAROUSEL, $template['type']);
+            $testRunner->assertEquals('rectangle', $template['imageAspectRatio']);
+            $testRunner->assertEquals('contain', $template['imageSize']);
+
+            $columns = $template['columns'];
+            var_dump($columns[0]);
+            $testRunner->assertEquals(2, count($columns));
+            $testRunner->assertEquals('https://example.com/image1.png', $columns[0]['thumbnailImageUrl']);
+            $testRunner->assertEquals('#000000', $columns[0]['imageBackgroundColor']);
+            $testRunner->assertEquals(ActionType::POSTBACK, $columns[0]['actions'][0]['type']);
+            $testRunner->assertEquals('postback label', $columns[0]['actions'][0]['label']);
+            $testRunner->assertEquals('post=back', $columns[0]['actions'][0]['data']);
+            $testRunner->assertEquals(ActionType::POSTBACK, $columns[0]['defaultAction']['type']);
+            $testRunner->assertEquals('default label', $columns[0]['defaultAction']['label']);
+            $testRunner->assertEquals('default=action', $columns[0]['defaultAction']['data']);
+
+            $testRunner->assertArrayNotHasKey('thumbnailImageUrl', $columns[1]);
+            $testRunner->assertArrayNotHasKey('imageBackgroundColor', $columns[1]);
+            $testRunner->assertEquals(ActionType::POSTBACK, $columns[1]['actions'][0]['type']);
+            $testRunner->assertEquals('postback label', $columns[1]['actions'][0]['label']);
+
+            return ['status' => 200];
+        };
+        $bot = new LINEBot(new DummyHttpClient($this, $mock), ['channelSecret' => 'CHANNEL-SECRET']);
+        $res = $bot->pushMessage(
+            'DESTINATION',
+            new LINEBot\MessageBuilder\TemplateMessageBuilder(
+                'alt test',
+                new CarouselTemplateBuilder(
+                    [
+                        new CarouselColumnTemplateBuilder(
+                            'column title',
+                            'column text',
+                            'https://example.com/image1.png',
+                            [
+                                new PostbackTemplateActionBuilder('postback label', 'post=back')
+                            ],
+                            new PostbackTemplateActionBuilder('default label', 'default=action'),
+                            '#000000'
+                        ),
+                        new CarouselColumnTemplateBuilder(
+                            'column title 2',
+                            'column text 2',
+                            null,
+                            [
+                                new PostbackTemplateActionBuilder('postback label', 'post=back')
+                            ]
+                        )
+                    ],
+                    'rectangle',
+                    'contain'
                 )
             )
         );
