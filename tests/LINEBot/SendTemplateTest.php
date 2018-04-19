@@ -408,14 +408,20 @@ class SendTemplateTest extends \PHPUnit_Framework_TestCase
             $testRunner->assertEquals(ActionType::POSTBACK, $columns[0]['actions'][0]['type']);
             $testRunner->assertEquals('postback label', $columns[0]['actions'][0]['label']);
             $testRunner->assertEquals('post=back', $columns[0]['actions'][0]['data']);
+            $testRunner->assertEquals('text', $columns[0]['actions'][0]['text']);
+            $testRunner->assertArrayNotHasKey('displayText', $columns[0]['actions'][0]);
             $testRunner->assertEquals(ActionType::POSTBACK, $columns[0]['defaultAction']['type']);
             $testRunner->assertEquals('default label', $columns[0]['defaultAction']['label']);
             $testRunner->assertEquals('default=action', $columns[0]['defaultAction']['data']);
+            $testRunner->assertEquals('text', $columns[0]['defaultAction']['displayText']);
+            $testRunner->assertArrayNotHasKey('text', $columns[0]['defaultAction']);
 
             $testRunner->assertArrayNotHasKey('thumbnailImageUrl', $columns[1]);
             $testRunner->assertArrayNotHasKey('imageBackgroundColor', $columns[1]);
             $testRunner->assertEquals(ActionType::POSTBACK, $columns[1]['actions'][0]['type']);
             $testRunner->assertEquals('postback label', $columns[1]['actions'][0]['label']);
+            $testRunner->assertEquals('text', $columns[1]['actions'][0]['text']);
+            $testRunner->assertArrayNotHasKey('displayText', $columns[1]['actions'][0]);
 
             return ['status' => 200];
         };
@@ -431,9 +437,9 @@ class SendTemplateTest extends \PHPUnit_Framework_TestCase
                             'column text',
                             'https://example.com/image1.png',
                             [
-                                new PostbackTemplateActionBuilder('postback label', 'post=back')
+                                new PostbackTemplateActionBuilder('postback label', 'post=back', 'text')
                             ],
-                            new PostbackTemplateActionBuilder('default label', 'default=action'),
+                            new PostbackTemplateActionBuilder('default label', 'default=action', 'text', true),
                             '#000000'
                         ),
                         new CarouselColumnTemplateBuilder(
@@ -441,7 +447,7 @@ class SendTemplateTest extends \PHPUnit_Framework_TestCase
                             'column text 2',
                             null,
                             [
-                                new PostbackTemplateActionBuilder('postback label', 'post=back')
+                                new PostbackTemplateActionBuilder('postback label', 'post=back', 'text', false)
                             ]
                         )
                     ],

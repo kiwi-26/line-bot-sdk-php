@@ -34,19 +34,24 @@ class PostbackTemplateActionBuilder implements TemplateActionBuilder
     private $data;
     /** @var string|null */
     private $text;
+    /** @var bool */
+    private $isDisplayOnly;
 
     /**
      * PostbackAction constructor.
      *
      * @param string $label Label of action.
      * @param string $data Data of postback.
-     * @param string|null $text The text which will be sent when action is executed (optional).
+     * @param string|null $text The text which will be sent or displayed when action is executed (optional).
+     * @param bool $isDisplayOnly Display only option. If you choose true, the text won't sent to server.
+     *                            The text property is deprecated, but default value is false for backward compatibility.
      */
-    public function __construct($label, $data, $text = null)
+    public function __construct($label, $data, $text = null, $isDisplayOnly = false)
     {
         $this->label = $label;
         $this->data = $data;
         $this->text = $text;
+        $this->isDisplayOnly = !is_null($isDisplayOnly) ? $isDisplayOnly : false;
     }
 
     /**
@@ -63,8 +68,11 @@ class PostbackTemplateActionBuilder implements TemplateActionBuilder
         ];
 
         if (isset($this->text)) {
-            // If text is set, append extend field.
-            $action['text'] = $this->text;
+            if ($this->isDisplayOnly) {
+                $action['displayText'] = $this->text;
+            } else {
+                $action['text'] = $this->text;
+            }
         }
 
         return $action;
