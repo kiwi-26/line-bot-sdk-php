@@ -38,7 +38,7 @@ class ConfirmTemplateBuilder implements TemplateBuilder
     private $template;
 
     /**
-     * ConfirmTemplate constructor.
+     * ConfirmTemplateBuilder constructor.
      *
      * @param string $text
      * @param TemplateActionBuilder[] $actionBuilders

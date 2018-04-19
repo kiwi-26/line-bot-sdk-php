@@ -43,6 +43,7 @@ class ImageCarouselColumnTemplateBuilder implements TemplateBuilder
      *
      * @param string $imageUrl
      * @param TemplateActionBuilder $actionBuilder
+     * @param string $imageBackgroundColor (optional)
      */
     public function __construct($imageUrl, $actionBuilder, $imageBackgroundColor = null)
     {
