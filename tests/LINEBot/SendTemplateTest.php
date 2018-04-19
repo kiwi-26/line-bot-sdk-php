@@ -401,7 +401,6 @@ class SendTemplateTest extends \PHPUnit_Framework_TestCase
             $testRunner->assertEquals('contain', $template['imageSize']);
 
             $columns = $template['columns'];
-            var_dump($columns[0]);
             $testRunner->assertEquals(2, count($columns));
             $testRunner->assertEquals('https://example.com/image1.png', $columns[0]['thumbnailImageUrl']);
             $testRunner->assertEquals('#000000', $columns[0]['imageBackgroundColor']);
