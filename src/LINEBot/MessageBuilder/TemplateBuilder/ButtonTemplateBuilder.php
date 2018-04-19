@@ -43,19 +43,25 @@ class ButtonTemplateBuilder implements TemplateBuilder
     private $imageSize;
     /** @var string */
     private $imageBackgroundColor;
+    /** @var TemplateActionBuilder */
+    private $defaultActionBuilder;
 
     /** @var array */
     private $template;
 
     /**
-     * ConfirmTemplate constructor.
+     * ButtonTemplateBuilder constructor.
      *
      * @param string $title
      * @param string $text
      * @param string $thumbnailImageUrl
      * @param TemplateActionBuilder[] $actionBuilders
+     * @param string $imageAspectRatio (optional)
+     * @param string $imageSize (optional)
+     * @param string $imageBackgroundColor (optional)
+     * @param string $defaultActionBuilder (optional)
      */
-    public function __construct($title, $text, $thumbnailImageUrl, array $actionBuilders, $imageAspectRatio = null, $imageSize = null, $imageBackgroundColor = null)
+    public function __construct($title, $text, $thumbnailImageUrl, array $actionBuilders, $imageAspectRatio = null, $imageSize = null, $imageBackgroundColor = null, $defaultActionBuilder = null)
     {
         $this->title = $title;
         $this->text = $text;
@@ -64,6 +70,7 @@ class ButtonTemplateBuilder implements TemplateBuilder
         $this->imageAspectRatio = $imageAspectRatio;
         $this->imageSize = $imageSize;
         $this->imageBackgroundColor = $imageBackgroundColor;
+        $this->defaultActionBuilder = $defaultActionBuilder;
     }
 
     /**
@@ -100,6 +107,10 @@ class ButtonTemplateBuilder implements TemplateBuilder
 
         if (!empty($this->imageBackgroundColor)) {
             $this->template['imageBackgroundColor'] = $this->imageBackgroundColor;
+        }
+
+        if (!empty($this->defaultActionBuilder)) {
+            $this->template['defaultAction'] = $this->defaultActionBuilder->buildTemplateAction();
         }
 
         return $this->template;
